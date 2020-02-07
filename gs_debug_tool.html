@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Gaussian Debug Tool</title>
+<style>
+  r{
+    font-size: 13px;
+    line-height: 200%;
+    color: red;
+  }
+  f{
+    font-size: 15px;
+    color: black;
+  }
+  t{
+    font-size: 15px;
+    font-weight:bold;
+    line-height: 280%;
+    color: blue;
+  }
+
+  #container{
+    width:1000px;
+    margin:0 auto;
+    border:0px solid #489FF1;
+    position:relative;
+  }
+
+  #left{
+    width:450px;
+    height:550px;
+    background: #FFFFFF;
+    position:absolute;
+    left:0px;
+    top:0px;
+  }
+
+  #right{
+    width:550px;
+    height:400px;
+    background: #FFFFFF;
+    position:absolute;
+    right:0px;
+    top:0px;
+  }
+</style>
+
+<script type="text/javascript">
+
+<!-- 全局变量定义 -->
+var sortflag_bag = "up"; //设置bag排序 ：时间升序，时间降序
+var sortflag_log = "up"; //设置log排序 ：名称升序，名称降序
+var sortflag_map = "mode_1"; //设置map排序: 按名称升序，名称降序，时间升序，时间降序
+var host_ip="10.7.5.88"; //设置导航主机IP地址，默认为10.7.5.88
+<!------------------>
+
+
+
+
+Date.prototype.Format = function (fmt) {
+    var o = {
+            "M+": this.getMonth() + 1, // 月份
+            "d+": this.getDate(), // 日
+            "h+": this.getHours(), // 小时
+            "m+": this.getMinutes(), // 分
+            "s+": this.getSeconds(), // 秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+            "S": this.getMilliseconds() // 毫秒
+    };
+    if (/(y+)/.test(fmt))
+        fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+    for (var k in o)
+        if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    return fmt;
+}
+
+function quickSort(arr) {
+    // 交换
+    function swap(arr, a, b) {
+        var temp = arr[a];
+        arr[a] = arr[b];
+        arr[b] = temp;
+    }
+
+    // 分区
+    function partition(arr, left, right) {
+        /**
+         * 开始时不知最终pivot的存放位置，可以先将pivot交换到后面去
+         * 这里直接定义最右边的元素为基准
+         */
+        var pivot = arr[right];
+        /**
+         * 存放小于pivot的元素时，是紧挨着上一元素的，否则空隙里存放的可能是大于pivot的元素，
+         * 故声明一个storeIndex变量，并初始化为left来依次紧挨着存放小于pivot的元素。
+         */
+        var storeIndex = left;
+        for (var i = left; i < right; i++) {
+            if (arr[i] < pivot) {
+                /**
+                 * 遍历数组，找到小于的pivot的元素，（大于pivot的元素会跳过）
+                 * 将循环i次时得到的元素，通过swap交换放到storeIndex处，
+                 * 并对storeIndex递增1，表示下一个可能要交换的位置
+                 */
+                swap(arr, storeIndex, i);
+                storeIndex++;
+            }
+        }
+        // 最后： 将pivot交换到storeIndex处，基准元素放置到最终正确位置上
+        swap(arr, right, storeIndex);
+        return storeIndex;
+    }
+
+    function sort(arr, left, right) {
+        if (left > right) return;
+
+        var storeIndex = partition(arr, left, right);
+        sort(arr, left, storeIndex - 1);
+        sort(arr, storeIndex + 1, right);
+    }
+
+    sort(arr, 0, arr.length - 1);
+    return arr;
+}
+
+
+//IP地址正则表达式校验
+function isValidIP(ip) {
+    var reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+    return reg.test(ip);
+} 
+
+
+function setHostIp()
+{
+  var tmp_ip=document.getElementById("getHostIp").value;
+  var t=document.getElementById("output");
+  
+  
+  if (tmp_ip === "") {
+    t.value="主机IP设置为空，请重新输入！";
+    return;
+  }
+  else if (isValidIP(tmp_ip) == false) {
+    t.value="主机IP格式错误，请重新输入！";
+    return;
+  }
+  else{
+    host_ip = tmp_ip;
+    var msg="当前主机IP设置为：" + host_ip;
+    t.value=msg;
+  }
+}
+
+
+/**
+ * 将url以表单的方式提交
+ */
+var updateSystemForm = function () {
+  var url = "http://" + host_ip + ":8080/gs-robot/system/update_system_form";
+
+  var file2upload = document.getElementById("gs_firmware").files[0];
+  var form = new FormData(); // FormData 对象
+  form.enctype="multipart/form-data";
+  form.append("file", file2upload); // 文件对象
+  
+  var t=document.getElementById("output");
+  tmpValue="固件名称：" + file2upload.name + "\n\n升级中... ";
+  t.value=tmpValue;
+  
+  var xhr = new XMLHttpRequest();
+  xhr.withCredentials = false;
+  xhr.open("POST", url);
+ 
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      if(this.status == 200 ) {
+        console.log(this.responseText);
+        tmpValue += "\n\n固件升级成功！\n\n请继续等待2分钟后再重启机器人！\n\n";
+        tmpValue += new Date().Format('yy-MM-dd hh:mm:ss');
+        t.value=tmpValue;
+        document.getElementById("upFirmware").disabled = false;
+      }
+    }
+  });
+  
+  xhr.send(form);
+  document.getElementById("upFirmware").disabled = true;
+}
+
+  
+//匹配激光序列号
+function setLaserParam()
+{
+  var url = "http://" + host_ip + ":8080/gs-robot/cmd/update_laser_param";
+  var laser_code = document.getElementById("getLaser").value;
+  var t=document.getElementById("output");
+  
+  if (laser_code === "") {
+    t.value="激光匹配码为空，请重新输入！";
+    return;
+  }
+  var head = "{\"laser_param\":\"";
+  var tail = "\"}";
+  var data = head+laser_code+tail;
+  
+  var xhr = new XMLHttpRequest();
+  xhr.withCredentials = false;
+
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      if(this.status == 200 ) {
+        console.log(this.responseText);
+        t.value="匹配激光成功！";
+      }
+    }
+  });
+  
+  xhr.open("POST", url);
+  xhr.send(data);
+
+}
+
+
+//下载地图文件
+function getMapData()
+{
+  var data=document.getElementById("getMapName").value;
+  var t=document.getElementById("output");
+  
+  if (data === "") {
+    t.value="地图名称为空，请重新输入！";
+    return;
+  }
+  var url = "http://" + host_ip + ":8080/gs-robot/data/download_map?map_name=" + data;
+  
+  window.location.href=url;
+}
+
+//下载bag，由于bag生成需要一定时间，所以采用以下方式来获取
+function getBagData() {
+  var data=document.getElementById("getBagName").value;
+  var t=document.getElementById("output");
+  
+  if (data === "") {
+    t.value="bag名称为空，请重新输入！";
+    return;
+  }
+  var a = document.createElement('a');
+  var url = "http://" + host_ip + ":8080/GAUSSIAN_RUNTIME_DIR/bag/"+data;
+  var filename = data + ".gs";
+
+  a.href=url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+ }
+
+ 
+//下载log，由于log生成需要一定时间，所以采用以下方式来获取
+function getLogData() {
+  var data=document.getElementById("getLogName").value;
+  var t=document.getElementById("output");
+  
+  if (data === "") {
+    t.value="日志名称为空，请重新输入！";
+    return;
+  }
+  var a = document.createElement('a');
+  var url = "http://" + host_ip + ":8080/gs-robot/static?path=../.ros/"+data;
+  var filename = data + ".gs";
+
+  a.href=url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+ }
+
+
+var uploadMapData = function () {
+  //获取地图文件名称，通过.tar.gz来分割文件名称，存在一定风险
+  var file2upload = document.getElementById("gs_MapName").files[0];
+  var map_name = file2upload.name.split('.tar.gz', 1);
+  var url = "http://" + host_ip + ":8080/gs-robot/data/upload_map?map_name=" + map_name;
+ 
+  var t=document.getElementById("output");
+  var tmp = "正在上传地图...\n\n地图名称：" + map_name;
+  t.value = tmp;
+  
+  var xhr = new XMLHttpRequest();
+  xhr.withCredentials = false;
+  xhr.open("POST", url);
+  
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      if(this.status == 200 ) {
+        console.log(this.responseText);
+        tmp += "\n\n地图上传成功！";
+        t.value = tmp;
+        document.getElementById("upMap").disabled = false;
+      }
+    }
+  });
+  
+  var filereader = new FileReader();
+  filereader.readAsArrayBuffer(file2upload);
+  
+  filereader.onload = function(res){
+    var data = res.target.result;
+    if (filereader.readyState == 2) {
+      xhr.send(data);
+      document.getElementById("upMap").disabled = true;
+    }
+  }
+};
+
+
+
+function getVersion(){
+  var url = "http://" + host_ip + ":8080/gs-robot/info";
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var t=document.getElementById("output");
+        t.value=JSON.stringify(JSON.parse(oAjax.responseText).data,null,2)
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+ 
+function getSystemTime(){
+  var url = "http://" + host_ip + ":8080/gs-robot/data/device_status";
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var robotStemp = JSON.parse(oAjax.responseText).data.statusUpdatedAt;
+        var robotTime = new Date(robotStemp * 1000).Format('yy-MM-dd hh:mm:ss');
+        var t=document.getElementById("output");
+        var localTime = new Date().Format('yy-MM-dd hh:mm:ss');
+        t.value = "机器时间：" + robotTime + "\n----------------------------------\n" +"电脑时间：" + localTime;
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+function getDeviceStatus(){
+  var url = "http://" + host_ip + ":8080/gs-robot/data/device_status";
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var t=document.getElementById("output");
+        t.value=JSON.stringify(JSON.parse(oAjax.responseText).data,null,2)
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+function getMapList(){
+  var url = "http://" + host_ip + ":8080/gs-robot/data/maps";
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var maps = "";
+        var data_filed = JSON.parse(oAjax.responseText).data;
+        
+        if (sortflag_map == "mode_1") {
+          var sortArray = data_filed.sort(function(a, b){ var x = a.name.toLowerCase();
+                                                          var y = b.name.toLowerCase();
+                                                          if (x < y) {return -1;}
+                                                          if (x > y) {return 1;}
+                                                          return 0;});
+          maps += "机器人地图列表( 名称升序 )，继续点击切换排序\n";
+          sortflag_map = "mode_2";
+        } else if (sortflag_map == "mode_2"){
+          var sortArray = data_filed.sort(function(a, b){ var x = b.name.toLowerCase();
+                                                          var y = a.name.toLowerCase();
+                                                          if (x < y) {return -1;}
+                                                          if (x > y) {return 1;}
+                                                          return 0;});
+          maps += "机器人地图列表( 名称降序 )，继续点击切换排序\n";
+          sortflag_map = "mode_3";
+        }
+        else if (sortflag_map == "mode_3") {
+          var sortArray = data_filed.sort(function(a, b){ var x = a.createdAt.toLowerCase();
+                                                          var y = b.createdAt.toLowerCase();
+                                                          if (x < y) {return -1;}
+                                                          if (x > y) {return 1;}
+                                                          return 0;});
+          maps += "机器人地图列表( 时间升序 )，继续点击切换排序\n";
+          sortflag_map = "mode_4";
+        } else {
+          var sortArray = data_filed.sort(function(a, b){ var x = b.createdAt.toLowerCase();
+                                                          var y = a.createdAt.toLowerCase();
+                                                          if (x < y) {return -1;}
+                                                          if (x > y) {return 1;}
+                                                          return 0;});
+          maps += "机器人地图列表( 时间降序 )，继续点击切换排序\n";
+          sortflag_map = "mode_1";
+        }
+        maps += "---------------------------------------------\n";
+        for(var i=0;i < sortArray.length;i++)
+        {
+          maps += "地图创建时间："+ sortArray[i].createdAt + "  →  " + sortArray[i].name + "\n";
+        }
+        var t=document.getElementById("output");
+        t.value=maps;
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+
+function getBagList(){
+  var url = "http://" + host_ip + ":8080/gs-robot/data/bag_files";
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        
+        var bags = "";
+        var data_filed = JSON.parse(oAjax.responseText).data;
+        if (sortflag_bag == "up") {
+          var sortArray = data_filed.sort(function(a, b){return a.file_time - b.file_time});
+          bags += "机器人bag列表( 时间升序 )，继续点击切换排序\n";
+          sortflag_bag = "down";
+        } else {
+          var sortArray = data_filed.sort(function(a, b){return b.file_time - a.file_time});
+          bags += "机器人bag列表( 时间降序 )，继续点击切换排序\n";
+          sortflag_bag = "up";
+        }
+        bags += "---------------------------------------------\n";
+        for(var i=0;i < sortArray.length;i++)
+        {
+          var filet = new Date(sortArray[i].file_time * 1000).Format('yy-MM-dd hh:mm:ss');
+          bags += filet + " → " + sortArray[i].file_name + "\n";
+        }
+        <!-- var atime = [0]; -->
+        <!-- for(var i=0;i < data_filed.length;i++) -->
+        <!-- { -->
+          <!-- atime[i] = data_filed[i].file_time; -->
+        <!-- } -->
+        
+        <!-- //快速排序 -->
+        <!-- quickSort(atime); -->
+        <!-- for(var i = data_filed.length; i > 0; i--) -->
+        <!-- { -->
+          <!-- for(var j=0;j < data_filed.length;j++) -->
+          <!-- { -->
+            <!-- if (atime[i] == data_filed[j].file_time) -->
+            <!-- { -->
+              <!-- var filet = new Date(data_filed[j].file_time * 1000).Format('yy-MM-dd hh:mm:ss'); -->
+              <!-- bags += filet + " → " + data_filed[j].file_name + "\n"; -->
+              <!-- continue ; -->
+            <!-- } -->
+          <!-- } -->
+        <!-- } -->
+        var t=document.getElementById("output");
+        t.value=bags;
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+function getLogList(){
+  var url = "http://" + host_ip + ":8080/gs-robot/data/log_files";
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        
+        var logs = "";
+        var data_filed = JSON.parse(oAjax.responseText).data;
+        
+        if (sortflag_log == "up") {
+          var sortArray = data_filed.sort(function(a, b){ var x = a.logName.toLowerCase();
+                                                          var y = b.logName.toLowerCase();
+                                                          if (x < y) {return -1;}
+                                                          if (x > y) {return 1;}
+                                                          return 0;});
+          logs += "机器人日志列表( 名称升序 )，继续点击切换排序\n";
+          sortflag_log = "down";
+        } else if (sortflag_log == "down"){
+          var sortArray = data_filed.sort(function(a, b){ var x = b.logName.toLowerCase();
+                                                          var y = a.logName.toLowerCase();
+                                                          if (x < y) {return -1;}
+                                                          if (x > y) {return 1;}
+                                                          return 0;});
+          logs += "机器人日志列表( 名称降序 )，继续点击切换排序\n";
+          sortflag_log = "up";
+        }
+
+        logs += "---------------------------------------------\n";
+        for(var i=0;i < sortArray.length;i++)
+        {
+          logs +=  " → " + sortArray[i].logName + "\n";
+        }
+        <!-- var atime = [0]; -->
+        <!-- for(var i=0;i < data_filed.length;i++) -->
+        <!-- { -->
+          <!-- atime[i] = data_filed[i].file_time; -->
+        <!-- } -->
+        
+        <!-- //快速排序 -->
+        <!-- quickSort(atime); -->
+        <!-- for(var i = data_filed.length; i > 0; i--) -->
+        <!-- { -->
+          <!-- for(var j=0;j < data_filed.length;j++) -->
+          <!-- { -->
+            <!-- if (atime[i] == data_filed[j].file_time) -->
+            <!-- { -->
+              <!-- var filet = new Date(data_filed[j].file_time * 1000).Format('yy-MM-dd hh:mm:ss'); -->
+              <!-- bags += filet + " → " + data_filed[j].file_name + "\n"; -->
+              <!-- continue ; -->
+            <!-- } -->
+          <!-- } -->
+        <!-- } -->
+        var t=document.getElementById("output");
+        t.value=logs;
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+function deleteMap(){
+  var t=document.getElementById("output");
+  var map_name = prompt("请输入要删除的地图名称： ");
+  if (map_name == null ) { t.value="操作取消！"; return ; }
+  else if (map_name == "" ) {t.value="地图名称为空！"; return ; } 
+  else {
+    var flag = confirm("确定要删除地图：" + map_name + "?");
+    if( flag == false){ t.value="取消删除地图！"; return;}
+  }
+  
+  var url = "http://" + host_ip + ":8080/gs-robot/cmd/delete_map?map_name=" + map_name;
+
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        t.value="已删除地图：" + map_name;
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+function robotReboot(){
+  var t=document.getElementById("output");
+  var flag = confirm("确定要重启机器?（注意：仅上位机重启）");
+  if( flag == false){ t.value="取消操作！"; return;}
+  
+  var url = "http://" + host_ip + ":8080/gs-robot/cmd/reboot";
+
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        t.value=JSON.stringify(JSON.parse(oAjax.responseText),null,2);
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+//websocket function 
+function getHealthStatus(){
+  var ws;
+  var url = "ws://" + host_ip + ":8089/gs-robot/notice/system_health_status";
+  ws=new WebSocket(url);
+  ws.onmessage=function(evt){
+    console.log(evt.data);
+    var t=document.getElementById("output");
+    t.value=JSON.stringify(JSON.parse(evt.data),null,2);
+    //接收到一帧数据后关闭连接，避免持续刷新，影响其他信息显示
+    ws.close();
+    };
+  ws.onopen=function(evt){
+  ws.send("Hello");
+  }
+}
+
+
+function getApiDoc(){
+  var url = "http://download.gs-robot.com/gs_api/api.html";
+  window.open(url);
+}
+</script>
+</head>
+
+
+
+<body>
+<div id="container">
+
+  <div id="left">
+    <form>
+      请先确认主机IP: <input type="text" name="text" size="10" id="getHostIp" value="10.7.5.88">
+      <input type="button" onclick="setHostIp()" value="设置">
+      <input type="button" onclick="getSystemTime()" value="机器当前时间">
+    </form> 
+    <f>---------------------------------------------------------</f>
+    <br>
+    <t>升级固件</t>
+    <br>
+    <r>重要：提示升级成功后，请等待2分钟后再重启机器人！</r>
+    <form id="updateSystemFrom">
+      固件：<input type="file" name="file" id="gs_firmware"accept=".gspkg">
+      <input type="button" onclick="updateSystemForm()" id="upFirmware" value="开始升级">
+    </form> 
+    <f>---------------------------------------------------------</f>
+    <br>
+    <t>配置激光</t>
+    <br>
+    <form>
+      匹配码: <input type="text" name="text" size="31" id="getLaser" value="">
+      <input type="button" onclick="setLaserParam()" value="匹配激光">
+      <!-- <br> -->
+      <!-- 序列号: <input type="text" name="text" size="31" id="getLaserSN" value=""> -->
+      <!-- <input type="button" onclick="getActiveCode()" value="获取激活码"> -->
+    </form> 
+    <f>---------------------------------------------------------</f>
+    <br>
+    <t>下载地图</t>
+    <br>
+    <form>
+      地图名称: <input type="text" name="text" id="getMapName" size="30" value="">
+      <input type="button" onclick="getMapData()" value="下载地图">
+    </form> 
+    <f>---------------------------------------------------------</f>
+    <br>
+    <t>上传地图</t>
+    <br>
+    <form id="uploadMapFrom">
+      地图名称: <input type="file" name="file" id="gs_MapName"accept=".tar.gz">
+      <input type="button" onclick="uploadMapData()" id="upMap" value="上传地图">
+    </form> 
+    <f>---------------------------------------------------------</f>
+    <br>
+    <t>下载bag</t>
+    <br>
+    <form>
+      bag名称: <input type="text" name="text" id="getBagName" size="30" value="">
+      <input type="button" onclick="getBagData()" value="下载bag">
+    </form> 
+    <f>---------------------------------------------------------</f>
+    <br>
+    <t>下载日志</t>
+    <br>
+    <form>
+      日志名称: <input type="text" name="text" id="getLogName" size="30" value="">
+      <input type="button" onclick="getLogData()" value="下载日志">
+    </form> 
+  </div>
+  
+  
+  <div id="right">
+    <h4>实时数据显示</h4>
+    <form>
+      <textarea id="output" rows="30" cols="70" style="color:blue;font-family: sans-serif;font-size:13px;"> </textarea>
+      <br>
+      <input type="button" onclick="getVersion()" value="版本信息">
+      <input type="button" onclick="getDeviceStatus()" value="设备状态">
+      <input type="button" onclick="getHealthStatus()" value="健康状态">
+      <input type="button" onclick="getMapList()" value="地图列表">
+      <input type="button" onclick="getBagList()" value="bag列表">
+      <input type="button" onclick="getLogList()" value="日志列表">
+      <br><br>
+      <input type="button" onclick="getApiDoc()" value="GS-API文档">
+      <input type="button" onclick="deleteMap()" value="删除地图">
+      <input type="button" onclick="robotReboot()" value="重启机器">
+      <br>
+    </form> 
+  </div>
+  
+</div>
+</body>
+</html>
