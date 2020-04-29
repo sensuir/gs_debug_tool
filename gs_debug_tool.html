@@ -53,6 +53,8 @@ var sortflag_bag = "up"; //设置bag排序 ：时间升序，时间降序
 var sortflag_log = "up"; //设置log排序 ：名称升序，名称降序
 var sortflag_map = "mode_1"; //设置map排序: 按名称升序，名称降序，时间升序，时间降序
 var host_ip="10.7.5.88"; //设置导航主机IP地址，默认为10.7.5.88
+var ws_notice;
+var ws_data_recive="off";
 <!------------------>
 
 
@@ -131,6 +133,44 @@ function isValidIP(ip) {
 } 
 
 
+
+function ping_test(){
+  var t=document.getElementById("output");
+  //var url = "http://www.baidu.com";
+  var url = "http://" + host_ip + ":8080/gs-robot/cmd/ping";
+  //var url = "http://" + host_ip + ":8080/ping_res";
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  //2.连接到服务器
+  oAjax.withCredentials = false;
+  oAjax.open('GET',url,true);
+
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var res = JSON.parse(oAjax.responseText).successed;
+        if(res == true)
+          t.value = "当前主机IP设置为：" + host_ip + "\n主机连接成功!";
+        else
+          t.value = "当前主机IP设置为：" + host_ip + "\n主机连接失败!";
+      }else{
+        //if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+        // alert(oAjax.responseText); //对失败的原因做出处理
+        // }
+        t.value = "当前主机IP设置为：" + host_ip + "\n主机连接失败!";
+      }
+    }
+  }
+  oAjax.send(null);
+}
+
 function setHostIp()
 {
   var tmp_ip=document.getElementById("getHostIp").value;
@@ -147,8 +187,7 @@ function setHostIp()
   }
   else{
     host_ip = tmp_ip;
-    var msg="当前主机IP设置为：" + host_ip;
-    t.value=msg;
+    ping_test();
   }
 }
 
@@ -176,8 +215,17 @@ var updateSystemForm = function () {
     if (this.readyState === 4) {
       if(this.status == 200 ) {
         console.log(this.responseText);
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true)
+		{
         tmpValue += "\n\n固件升级成功！\n\n请继续等待2分钟后再重启机器人！\n\n";
         tmpValue += new Date().Format('yy-MM-dd hh:mm:ss');
+        }
+		else
+        {       
+		  tmpValue += "\n\n固件升级失败！\n\n";
+		  tmpValue += JSON.parse(this.responseText).msg;
+        }
         t.value=tmpValue;
         document.getElementById("upFirmware").disabled = false;
       }
@@ -203,6 +251,7 @@ function setLaserParam()
   var head = "{\"laser_param\":\"";
   var tail = "\"}";
   var data = head+laser_code+tail;
+  tmpValue=new Date().Format('yy-MM-dd hh:mm:ss');
   
   var xhr = new XMLHttpRequest();
   xhr.withCredentials = false;
@@ -211,7 +260,17 @@ function setLaserParam()
     if (this.readyState === 4) {
       if(this.status == 200 ) {
         console.log(this.responseText);
-        t.value="匹配激光成功！";
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true)
+		{
+          tmpValue += "\n\n匹配激光成功！";
+        }
+		else
+        {       
+		  tmpValue += "\n\n匹配激光失败！\n\n";
+		  tmpValue += JSON.parse(this.responseText).msg;
+        }
+		t.value=tmpValue;
       }
     }
   });
@@ -344,6 +403,7 @@ function getVersion(){
     }
   }
 }
+
  
 function getSystemTime(){
   var url = "http://" + host_ip + ":8080/gs-robot/data/device_status";
@@ -713,6 +773,39 @@ function getHealthStatus(){
 }
 
 
+//websocket function 
+function getNavigationStatus(){
+
+  var url = "ws://" + host_ip + ":8089/gs-robot/notice/status";
+  if (ws_data_recive == "off"){
+	  ws_data_recive="on";
+	  ws_notice=new WebSocket(url);
+	  var t=document.getElementById("output");
+	  t.value ="开始接收websoket数据...\n";
+	  ws_notice.onmessage=function(evt){
+		console.log(evt.data);
+		t.value +="\n---------------\n";
+		t.value += new Date().Format('yy-MM-dd hh:mm:ss S');
+		t.value +="\n";
+		t.value +=JSON.stringify(JSON.parse(evt.data),null,2);
+		t.scrollTop = t.scrollHeight;
+		};
+
+	  ws_notice.onopen=function(evt){
+	  //ws_notice.send("Hello");
+	  } 
+	  document.getElementById("NavigationStatus").value = "停止接收";
+  }
+  else if(ws_data_recive == "on"){
+    ws_notice.close();
+	document.getElementById("NavigationStatus").value = "导航状态";
+	ws_data_recive="off";
+  }
+  else {
+    ws_data_recive="off";
+  }
+}
+
 function getApiDoc(){
   var url = "http://download.gs-robot.com/gs_api/api.html";
   window.open(url);
@@ -789,7 +882,7 @@ function getApiDoc(){
   <div id="right">
     <h4>实时数据显示</h4>
     <form>
-      <textarea id="output" rows="30" cols="70" style="color:blue;font-family: sans-serif;font-size:13px;"> </textarea>
+      <textarea id="output" rows="30" cols="70" style="color:blue; font-family: sans-serif; font-size:13px;"> </textarea>
       <br>
       <input type="button" onclick="getVersion()" value="版本信息">
       <input type="button" onclick="getDeviceStatus()" value="设备状态">
@@ -801,6 +894,7 @@ function getApiDoc(){
       <input type="button" onclick="getApiDoc()" value="GS-API文档">
       <input type="button" onclick="deleteMap()" value="删除地图">
       <input type="button" onclick="robotReboot()" value="重启机器">
+	  <input type="button" onclick="getNavigationStatus()" id="NavigationStatus" value="导航状态">
       <br>
     </form> 
   </div>
