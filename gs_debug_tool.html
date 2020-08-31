@@ -339,11 +339,19 @@ function getLogData() {
 var uploadMapData = function () {
   //获取地图文件名称，通过.tar.gz来分割文件名称，存在一定风险
   var file2upload = document.getElementById("gs_MapName").files[0];
+  
+  var mapSize = file2upload.size/1024/1024;
+  if ( mapSize.toFixed(2) > 100.0){
+    alert("暂不支持大于100MB的地图上传！\n当前地图大小：" + mapSize.toFixed(2) + " MB");
+	return;
+  }
+  
   var map_name = file2upload.name.split('.tar.gz', 1);
   var url = "http://" + host_ip + ":8080/gs-robot/data/upload_map?map_name=" + map_name;
  
   var t=document.getElementById("output");
   var tmp = "正在上传地图...\n\n地图名称：" + map_name;
+  tmp += "\n\n当前地图大小：" + mapSize.toFixed(2) + " MB";
   t.value = tmp;
   
   var xhr = new XMLHttpRequest();
@@ -354,7 +362,25 @@ var uploadMapData = function () {
     if (this.readyState === 4) {
       if(this.status == 200 ) {
         console.log(this.responseText);
+		
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true)
+		{
         tmp += "\n\n地图上传成功！";
+        }
+		else
+        {
+          var e_msg = JSON.parse(this.responseText).msg;
+		  if(e_msg == "map already exists")
+		  {
+		      tmp += "\n\n已存在相同地图，请删除该地图后，重新上传！";
+	      }
+		  else if (e_msg == "decompress map file failed")
+		  {
+		      tmp += "\n\n地图文件损坏，请检查地图文件！";
+		  }
+		  tmp += "\n\n地图上传失败！";
+        }
         t.value = tmp;
         document.getElementById("upMap").disabled = false;
       }
