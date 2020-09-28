@@ -55,6 +55,7 @@ var sortflag_map = "mode_1"; //设置map排序: 按名称升序，名称降序�
 var host_ip="10.7.5.88"; //设置导航主机IP地址，默认为10.7.5.88
 var ws_notice;
 var ws_data_recive="off";
+var uplode_map_size_limit=100.0; //上传地图时的文件大小限制，单位MB
 <!------------------>
 
 
@@ -326,7 +327,7 @@ function getLogData() {
     return;
   }
   var a = document.createElement('a');
-  var url = "http://" + host_ip + ":8080/gs-robot/static?path=../.ros/"+data;
+  var url = "http://" + host_ip + ":8080/GAUSSIAN_RUNTIME_DIR/../.ros/"+data;
   var filename = data + ".gs";
 
   a.href=url;
@@ -341,7 +342,7 @@ var uploadMapData = function () {
   var file2upload = document.getElementById("gs_MapName").files[0];
   
   var mapSize = file2upload.size/1024/1024;
-  if ( mapSize.toFixed(2) > 100.0){
+  if ( mapSize.toFixed(2) > uplode_map_size_limit){
     alert("暂不支持大于100MB的地图上传！\n当前地图大小：" + mapSize.toFixed(2) + " MB");
 	return;
   }

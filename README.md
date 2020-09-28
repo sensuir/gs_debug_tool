@@ -4,6 +4,9 @@ A tool for every one who work with gaussian navigaiton system
 ## BUGS
 1. File size of the map to be upload would be less than 100MB, if not, Browser will crashed!
 
+## V1.0.8
+1. modify download log api
+
 ## V1.0.7
 1. add upload_map file size limited(less than 100MB)
 
