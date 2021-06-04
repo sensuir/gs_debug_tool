@@ -4,6 +4,18 @@ A tool for every one who work with gaussian navigaiton system
 ## BUGS
 1. File size of the map to be upload would be less than 100MB, if not, Browser will crashed!
 
+## V1.0.11
+1. host ip support press "ENTER" to set
+2. add ROS IP get function(need firmware support) 
+3. add ROS IP set function(need firmware support) 
+4. add CHASSIS IP set function (need firmware support) 
+
+## V1.0.10
+1. add one-key remove crubs
+
+## V1.0.9
+1. sorry, I didn't remember. ^_^
+
 ## V1.0.8
 1. modify download log api
 

@@ -140,7 +140,7 @@ function ping_test(){
   //var url = "http://www.baidu.com";
   var url = "http://" + host_ip + ":8080/gs-robot/cmd/ping";
   //var url = "http://" + host_ip + ":8080/ping_res";
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -190,6 +190,12 @@ function setHostIp()
     host_ip = tmp_ip;
     ping_test();
   }
+}
+
+function ipSet(event) {
+    if (event.keyCode == 13) {
+        setHostIp();
+    }
 }
 
 
@@ -404,7 +410,7 @@ var uploadMapData = function () {
 
 function getVersion(){
   var url = "http://" + host_ip + ":8080/gs-robot/info";
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -434,7 +440,7 @@ function getVersion(){
  
 function getSystemTime(){
   var url = "http://" + host_ip + ":8080/gs-robot/data/device_status";
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -466,7 +472,7 @@ function getSystemTime(){
 
 function getDeviceStatus(){
   var url = "http://" + host_ip + ":8080/gs-robot/data/device_status";
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -495,7 +501,7 @@ function getDeviceStatus(){
 
 function getMapList(){
   var url = "http://" + host_ip + ":8080/gs-robot/data/maps";
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -567,7 +573,7 @@ function getMapList(){
 
 function getBagList(){
   var url = "http://" + host_ip + ":8080/gs-robot/data/bag_files";
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -635,7 +641,7 @@ function getBagList(){
 
 function getLogList(){
   var url = "http://" + host_ip + ":8080/gs-robot/data/log_files";
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -722,7 +728,7 @@ function deleteMap(){
   
   var url = "http://" + host_ip + ":8080/gs-robot/cmd/delete_map?map_name=" + map_name;
 
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -756,7 +762,7 @@ function robotReboot(){
   
   var url = "http://" + host_ip + ":8080/gs-robot/cmd/reboot";
 
-  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。IE6下使用没有定义的XMLHttpRequest会报错,所以当做window的一个属性使用
+  //1.创建Ajax对象。js中,使用一个没有定义的变量会报错,使用一个没有定义的属性,是undefined。
   if (window.XMLHttpRequest) {
     var oAjax=new XMLHttpRequest();//非IE6
   }else{
@@ -833,10 +839,282 @@ function getNavigationStatus(){
   }
 }
 
+function deleteMapCurb(){
+  var t=document.getElementById("output");
+  var map_name = prompt("请输入地图名称： ");
+  if (map_name == null ) { t.value="操作取消！"; return ; }
+  else if (map_name == "" ) {t.value="地图名称为空！"; return ; } 
+  else {
+    var flag = confirm("确定要删除地图：" + map_name + "上的所有路沿数据?");
+    if( flag == false){ t.value="取消操作！"; return;}
+  }
+  
+  var url = "http://" + host_ip + ":8080/gs-robot/data/virtual_obstacles?map_name=" + map_name;
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  
+  oAjax.open('GET',url,true);
+  oAjax.send();
+  
+  var virtual_data = {"curbs":""};
+  oAjax.onreadystatechange=function(){
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+		if (JSON.parse(oAjax.responseText).successed === true && JSON.parse(oAjax.responseText).data !== null ){
+			if (JSON.parse(oAjax.responseText).data.hasOwnProperty("curbs") === true){
+			  virtual_data.curbs = JSON.parse(oAjax.responseText).data.curbs;
+			  virtual_data.curbs.polylines=[];
+			  updateVirtualObstacles(map_name, JSON.stringify(virtual_data,null,2), "curbs");
+			}else{
+			  alert("该地图没有路沿数据！");
+			}
+		}else{
+			t.value="请求数据错误！\n" + JSON.stringify(JSON.parse(oAjax.responseText),null,2);
+			return;
+		}
+      }else{
+        if(fnFaild){  
+          alert(oAjax.responseText); 
+        }
+      }
+    }
+  } 
+}
+
+function updateVirtualObstacles(map_name, data, type){
+var url = "http://" + host_ip + ":8080/gs-robot/cmd/update_virtual_obstacles?map_name="+map_name+"&obstacle_name="+type;
+var t=document.getElementById("output");
+var xhr = new XMLHttpRequest();
+  xhr.withCredentials = false;
+
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      if(this.status == 200 ) {
+        console.log(this.responseText);
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true)
+		{
+          var tmpValue = "地图名称："+map_name+"\n\n更新"+type+"数据成功！";
+        }
+		else
+        {       
+		  var tmpValue = "操作失败，请重试！\n\n";
+		  tmpValue += JSON.parse(this.responseText).msg;
+        }
+		t.value=tmpValue;
+      }
+    }
+  });
+  xhr.open("POST", url);
+  xhr.send(data);
+}
+
+
 function getApiDoc(){
   var url = "http://download.gs-robot.com/gs_api/api.html";
   window.open(url);
 }
+
+
+function getRosIp(){
+  var url = "http://" + host_ip + ":8086/gs-robot/data/ros_ip";
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  oAjax.withCredentials = false;
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var t=document.getElementById("output");
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true){
+          t.value=JSON.stringify(JSON.parse(oAjax.responseText).data,null,2)
+        }else{
+          t.value=JSON.stringify(JSON.parse(oAjax.responseText),null,2)
+        }
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+
+function UpdateNewRosIp(){
+  var t=document.getElementById("output");
+  var flag = confirm("确定要启用新的ROS IP设置？");
+  if( flag == false){ t.value="取消操作！"; return;}
+  
+  var url = "http://" + host_ip + ":8086/gs-robot/cmd/update_ros_ip";
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  oAjax.withCredentials = false;
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var t=document.getElementById("output");
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true){
+          t.value=JSON.stringify(JSON.parse(oAjax.responseText).data,null,2)
+        }else{
+          t.value=JSON.stringify(JSON.parse(oAjax.responseText),null,2)
+        }
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
+
+//设置ROS IP
+function setRosIp()
+{
+  var url = "http://" + host_ip + ":8086/gs-robot/cmd/set_ros_ip";
+  var t=document.getElementById("output");
+  var new_ros_ip = prompt("请输入新的ROS IP： ");
+  if (new_ros_ip == null ) { t.value="操作取消！"; return ; }
+  else if (new_ros_ip == "" ) {t.value="IP名称为空！"; return ; } 
+  else {
+    if (isValidIP(new_ros_ip) == false) { 
+      alert("IP地址格式错误，请重新输入！")
+      return
+    }
+    var flag = confirm("确定修改ROS IP为：" + new_ros_ip + " ?");
+    if( flag == false){ t.value="取消修改ROS IP！"; return;}
+  }
+  
+  var body_data =JSON.stringify({"ros_ip": new_ros_ip, "skey":"122333"});
+  var tmpValue=new Date().Format('yy-MM-dd hh:mm:ss');
+  
+  var xhr = new XMLHttpRequest();
+  xhr.withCredentials = false;
+
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      if(this.status == 200 ) {
+        console.log(this.responseText);
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true)
+		{
+          tmpValue += "\n\n修改ROS IP成功！";
+          tmpValue += "\n\nROS IP: ";
+          tmpValue += JSON.parse(this.responseText).data.rosIP;
+        }
+		else
+        {       
+		  tmpValue += "\n\n修改ROS IP失败！\n\n";
+		  tmpValue += JSON.stringify(JSON.parse(this.responseText),null,2)
+        }
+		t.value=tmpValue;
+      }
+    }
+  });
+  
+  xhr.open("POST", url);
+  xhr.send(body_data);
+
+}
+
+
+//设置底层通讯TCP服务器的地址与端口（串口号与波特率）
+function setChassisIp()
+{
+  var url = "http://" + host_ip + ":8080/gs-robot/cmd/modify_robot_param";
+  
+  var t=document.getElementById("output");
+  var new_chassis_ip = prompt("注意：该操作仅适用于单上位机网口通讯方案！\n请输入新的底盘通讯IP： ");
+  if (new_chassis_ip == null ) { t.value="操作取消！"; return ; }
+  else if (new_chassis_ip == "" ) {t.value="IP名称为空！"; return ; } 
+  else {
+    if (isValidIP(new_chassis_ip) == false) { 
+      alert("IP地址格式错误，请重新输入！")
+      return
+      }
+    var new_chassis_port = prompt("请输入端口号： ");
+    if (new_chassis_port == null ) { t.value="操作取消！"; return ; }
+    else if (new_chassis_port == "" ) {t.value="端口号为空！"; return ; }
+    else{
+      if ( new_chassis_port >= 8000 || new_chassis_port <= 5000 ) { 
+      alert("端口号超出范围，请重新输入！\n 可设置范围：5000-8000 ")
+      return
+      }
+      var flag = confirm("确定修改底盘IP为：" + new_chassis_ip + " 端口: " + new_chassis_port +" ?");
+      if( flag == false){ t.value="取消修改底盘IP配置！"; return;}
+      }
+  }
+
+  var body_data = [{
+      "namespace": "/device/serial_port/mcu_baudrate",
+      "type": "int",
+      "value": new_chassis_port
+      },
+      {
+      "namespace": "/device/serial_port/mcu_port_name",
+      "type": "string",
+      "value": String(new_chassis_ip)
+      }]
+  var data =JSON.stringify(body_data);
+  
+  var tmpValue=new Date().Format('yy-MM-dd hh:mm:ss');
+  
+  var xhr = new XMLHttpRequest();
+  xhr.withCredentials = false;
+
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      if(this.status == 200 ) {
+        console.log(this.responseText);
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true)
+		{
+          tmpValue += "\n\n修改底盘IP成功！\n\n";
+          tmpValue += JSON.stringify(JSON.parse(this.responseText),null,2)
+        }
+		else
+        {       
+		  tmpValue += "\n\n修改底盘IP失败！\n\n";
+		  tmpValue += JSON.stringify(JSON.parse(this.responseText),null,2)
+        }
+		t.value=tmpValue;
+      }
+    }
+  });
+  
+  xhr.open("POST", url);
+  xhr.send(data);
+
+}
+
+
+
 </script>
 </head>
 
@@ -847,9 +1125,10 @@ function getApiDoc(){
 
   <div id="left">
     <form>
-      请先确认主机IP: <input type="text" name="text" size="10" id="getHostIp" value="10.7.5.88">
+      请先确认主机IP: <input type="text" name="text" size="10" id="getHostIp" value="10.7.5.88" onkeypress="ipSet(event)">
       <input type="button" onclick="setHostIp()" value="设置">
       <input type="button" onclick="getSystemTime()" value="机器当前时间">
+      <input type="text" class="form-control" style="display:none">
     </form> 
     <f>---------------------------------------------------------</f>
     <br>
@@ -922,6 +1201,12 @@ function getApiDoc(){
       <input type="button" onclick="deleteMap()" value="删除地图">
       <input type="button" onclick="robotReboot()" value="重启机器">
 	  <input type="button" onclick="getNavigationStatus()" id="NavigationStatus" value="导航状态">
+      <input type="button" onclick="deleteMapCurb()" value="清除路沿">
+      <br><br>
+      <input type="button" onclick="getRosIp()" value="获取ROS IP">
+      <input type="button" onclick="setRosIp()" value="修改ROS IP">
+      <input type="button" onclick="UpdateNewRosIp()" value="更新ROS IP">
+      <input type="button" onclick="setChassisIp()" value="修改底层通讯配置">
       <br>
     </form> 
   </div>
