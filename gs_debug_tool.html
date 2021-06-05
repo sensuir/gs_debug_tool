@@ -920,6 +920,35 @@ function getApiDoc(){
 }
 
 
+function getSystemIp(){
+  var url = "http://" + host_ip + ":8086/gs-robot/data/system_ip";
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  oAjax.withCredentials = false;
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var t=document.getElementById("output");
+        t.value=oAjax.responseText;
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
+
 function getRosIp(){
   var url = "http://" + host_ip + ":8086/gs-robot/data/ros_ip";
   if (window.XMLHttpRequest) {
@@ -980,7 +1009,7 @@ function UpdateNewRosIp(){
         var t=document.getElementById("output");
         var res = JSON.parse(this.responseText).successed;
         if(res == true){
-          t.value=JSON.stringify(JSON.parse(oAjax.responseText).data,null,2)
+          t.value=JSON.stringify(JSON.parse(oAjax.responseText),null,2)
         }else{
           t.value=JSON.stringify(JSON.parse(oAjax.responseText),null,2)
         }
@@ -1188,7 +1217,7 @@ function setChassisIp()
   <div id="right">
     <h4>实时数据显示</h4>
     <form>
-      <textarea id="output" rows="30" cols="70" style="color:blue; font-family: sans-serif; font-size:13px;"> </textarea>
+      <textarea id="output" rows="23" cols="70" style="color:blue; font-family: sans-serif; font-size:13px;"> </textarea>
       <br>
       <input type="button" onclick="getVersion()" value="版本信息">
       <input type="button" onclick="getDeviceStatus()" value="设备状态">
@@ -1203,10 +1232,11 @@ function setChassisIp()
 	  <input type="button" onclick="getNavigationStatus()" id="NavigationStatus" value="导航状态">
       <input type="button" onclick="deleteMapCurb()" value="清除路沿">
       <br><br>
+      <input type="button" onclick="getSystemIp()" value="获取系统IP">
       <input type="button" onclick="getRosIp()" value="获取ROS IP">
       <input type="button" onclick="setRosIp()" value="修改ROS IP">
       <input type="button" onclick="UpdateNewRosIp()" value="更新ROS IP">
-      <input type="button" onclick="setChassisIp()" value="修改底层通讯配置">
+      <input type="button" onclick="setChassisIp()" value="修改底盘通讯IP">
       <br>
     </form> 
   </div>
