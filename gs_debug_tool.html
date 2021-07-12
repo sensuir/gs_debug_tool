@@ -193,9 +193,9 @@ function setHostIp()
 }
 
 function ipSet(event) {
-    if (event.keyCode == 13) {
-        setHostIp();
-    }
+  if (event.keyCode == 13) {
+      setHostIp();
+  }
 }
 
 
@@ -224,14 +224,13 @@ var updateSystemForm = function () {
         console.log(this.responseText);
         var res = JSON.parse(this.responseText).successed;
         if(res == true)
-		{
-        tmpValue += "\n\n固件升级成功！\n\n请继续等待2分钟后再重启机器人！\n\n";
-        tmpValue += new Date().Format('yy-MM-dd hh:mm:ss');
+        {
+          tmpValue += "\n\n固件升级成功！\n\n请继续等待2分钟后再重启机器人！\n\n";
+          tmpValue += new Date().Format('yy-MM-dd hh:mm:ss');
         }
-		else
-        {       
-		  tmpValue += "\n\n固件升级失败！\n\n";
-		  tmpValue += JSON.parse(this.responseText).msg;
+        else{       
+          tmpValue += "\n\n固件升级失败！\n\n";
+          tmpValue += JSON.parse(this.responseText).msg;
         }
         t.value=tmpValue;
         document.getElementById("upFirmware").disabled = false;
@@ -269,11 +268,11 @@ function setLaserParam()
         console.log(this.responseText);
         var res = JSON.parse(this.responseText).successed;
         if(res == true)
-		{
+        {
           tmpValue += "\n\n匹配激光成功！";
         }
-		else
-        {       
+	else
+        {
 		  tmpValue += "\n\n匹配激光失败！\n\n";
 		  tmpValue += JSON.parse(this.responseText).msg;
         }
@@ -350,7 +349,7 @@ var uploadMapData = function () {
   var mapSize = file2upload.size/1024/1024;
   if ( mapSize.toFixed(2) > uplode_map_size_limit){
     alert("暂不支持大于100MB的地图上传！\n当前地图大小：" + mapSize.toFixed(2) + " MB");
-	return;
+    return;
   }
   
   var map_name = file2upload.name.split('.tar.gz', 1);
@@ -369,11 +368,11 @@ var uploadMapData = function () {
     if (this.readyState === 4) {
       if(this.status == 200 ) {
         console.log(this.responseText);
-		
+
         var res = JSON.parse(this.responseText).successed;
         if(res == true)
 		{
-        tmp += "\n\n地图上传成功！";
+            tmp += "\n\n地图上传成功！";
         }
 		else
         {
@@ -384,7 +383,7 @@ var uploadMapData = function () {
 	      }
 		  else if (e_msg == "decompress map file failed")
 		  {
-		      tmp += "\n\n地图文件损坏，请检查地图文件！";
+              tmp += "\n\n地图文件损坏，请检查地图文件！";
 		  }
 		  tmp += "\n\n地图上传失败！";
         }
@@ -811,18 +810,18 @@ function getNavigationStatus(){
 
   var url = "ws://" + host_ip + ":8089/gs-robot/notice/status";
   if (ws_data_recive == "off"){
-	  ws_data_recive="on";
-	  ws_notice=new WebSocket(url);
-	  var t=document.getElementById("output");
-	  t.value ="开始接收websoket数据...\n";
-	  ws_notice.onmessage=function(evt){
-		console.log(evt.data);
-		t.value +="\n---------------\n";
-		t.value += new Date().Format('yy-MM-dd hh:mm:ss S');
-		t.value +="\n";
-		t.value +=JSON.stringify(JSON.parse(evt.data),null,2);
-		t.scrollTop = t.scrollHeight;
-		};
+      ws_data_recive="on";
+      ws_notice=new WebSocket(url);
+      var t=document.getElementById("output");
+      t.value ="开始接收websoket数据...\n";
+      ws_notice.onmessage=function(evt){
+      console.log(evt.data);
+      t.value +="\n---------------\n";
+      t.value += new Date().Format('yy-MM-dd hh:mm:ss S');
+      t.value +="\n";
+      t.value +=JSON.stringify(JSON.parse(evt.data),null,2);
+      t.scrollTop = t.scrollHeight;
+  };
 
 	  ws_notice.onopen=function(evt){
 	  //ws_notice.send("Hello");
@@ -983,8 +982,45 @@ function getRosIp(){
   }
 }
 
+function recoveyRosIp(){
+  var t=document.getElementById("output");
+  var flag = confirm("确定要恢复ROS IP设置？");
+  if( flag == false){ t.value="取消操作！"; return;}
+  
+  var url = "http://" + host_ip + ":8086/gs-robot/cmd/recovery_ros_ip";
+  if (window.XMLHttpRequest) {
+    var oAjax=new XMLHttpRequest();//非IE6
+  }else{
+    var oAjax=new ActiveXObject("Microsoft.XMLHTTP");//IE6
+  }
+  oAjax.withCredentials = false;
+  //2.连接到服务器
+  oAjax.open('GET',url,true);
+  //3.发送请求
+  oAjax.send();
+  //4.接收返回值
+  oAjax.onreadystatechange=function(){
+    //oAjax.readyState--浏览器和服务器之间进行到哪一步了
+    if(oAjax.readyState==4){ //读取完成
+      if(oAjax.status==200){ //读取的结果是成功
+        console.log(oAjax.responseText);
+        var t=document.getElementById("output");
+        var res = JSON.parse(this.responseText).successed;
+        if(res == true){
+          t.value=JSON.stringify(JSON.parse(oAjax.responseText),null,2)
+        }else{
+          t.value=JSON.stringify(JSON.parse(oAjax.responseText),null,2)
+        }
+      }else{
+        if(fnFaild){  //判断是否传入失败是的函数,即用户是否关心失败时的结果
+          alert(oAjax.responseText); //对失败的原因做出处理
+        }
+      }
+    }
+  }
+}
 
-function UpdateNewRosIp(){
+function updateNewRosIp(){
   var t=document.getElementById("output");
   var flag = confirm("确定要启用新的ROS IP设置？");
   if( flag == false){ t.value="取消操作！"; return;}
@@ -1030,17 +1066,26 @@ function setRosIp()
   var t=document.getElementById("output");
   var new_ros_ip = prompt("请输入新的ROS IP： ");
   if (new_ros_ip == null ) { t.value="操作取消！"; return ; }
-  else if (new_ros_ip == "" ) {t.value="IP名称为空！"; return ; } 
+  else if (new_ros_ip == "" ) {t.value="IP地址为空！"; return ; } 
   else {
     if (isValidIP(new_ros_ip) == false) { 
       alert("IP地址格式错误，请重新输入！")
       return
     }
-    var flag = confirm("确定修改ROS IP为：" + new_ros_ip + " ?");
-    if( flag == false){ t.value="取消修改ROS IP！"; return;}
+    var new_gateway = prompt("IP地址为：" + new_ros_ip + "\n请输入新的网关： ");
+    if (new_gateway == null ) { t.value="操作取消！"; return ; }
+    else if (new_gateway == "" ) {t.value="网关地址为空！"; return ; } 
+    else {
+      if (isValidIP(new_gateway) == false) { 
+        alert("网关地址格式错误，请重新输入！")
+        return
+      }
+      var flag = confirm("确定修改\nROS IP为：" + new_ros_ip + "\n" + "网关地址为：" + new_gateway + " ?");
+      if( flag == false){ t.value="取消修改ROS IP！"; return;}
+    }
   }
   
-  var body_data =JSON.stringify({"ros_ip": new_ros_ip, "skey":"122333"});
+  var body_data =JSON.stringify({"ros_ip": new_ros_ip, "gateway": new_gateway, "skey":"122333"});
   var tmpValue=new Date().Format('yy-MM-dd hh:mm:ss');
   
   var xhr = new XMLHttpRequest();
@@ -1053,9 +1098,8 @@ function setRosIp()
         var res = JSON.parse(this.responseText).successed;
         if(res == true)
 		{
-          tmpValue += "\n\n修改ROS IP成功！";
-          tmpValue += "\n\nROS IP: ";
-          tmpValue += JSON.parse(this.responseText).data.rosIP;
+          tmpValue += "\n\n修改ROS IP成功！\n\n";
+          tmpValue += JSON.stringify(JSON.parse(this.responseText).data,null,2);
         }
 		else
         {       
@@ -1229,13 +1273,15 @@ function setChassisIp()
       <input type="button" onclick="getApiDoc()" value="GS-API文档">
       <input type="button" onclick="deleteMap()" value="删除地图">
       <input type="button" onclick="robotReboot()" value="重启机器">
-	  <input type="button" onclick="getNavigationStatus()" id="NavigationStatus" value="导航状态">
+      <input type="button" onclick="getNavigationStatus()" id="NavigationStatus" value="导航状态">
       <input type="button" onclick="deleteMapCurb()" value="清除路沿">
       <br><br>
       <input type="button" onclick="getSystemIp()" value="获取系统IP">
       <input type="button" onclick="getRosIp()" value="获取ROS IP">
       <input type="button" onclick="setRosIp()" value="修改ROS IP">
-      <input type="button" onclick="UpdateNewRosIp()" value="更新ROS IP">
+      <input type="button" onclick="updateNewRosIp()" value="更新ROS IP">
+      <input type="button" onclick="recoveyRosIp()" value="恢复ROS IP">
+      <br><br>
       <input type="button" onclick="setChassisIp()" value="修改底盘通讯IP">
       <br>
     </form> 

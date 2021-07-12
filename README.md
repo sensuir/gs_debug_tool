@@ -4,6 +4,10 @@ A tool for every one who work with gaussian navigaiton system
 ## BUGS
 1. File size of the map to be upload would be less than 100MB, if not, Browser will crashed!
 
+## V1.0.13
+1. add gateway set function
+2. add recovery IP cofiguration function
+
 ## V1.0.12
 1. change text item size
 2. add SYSTEM IP get function(need firmware support) 
