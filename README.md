@@ -4,6 +4,12 @@ A tool for every one who work with gaussian navigaiton system
 ## BUGS
 1. File size of the map to be upload would be less than 100MB, if not, Browser will crashed!
 
+## V1.0.15
+1. add get product id form robot.yaml
+
+## V1.0.14
+1. add one-key remove virtual wall
+
 ## V1.0.13
 1. add gateway set function
 2. add recovery IP cofiguration function
